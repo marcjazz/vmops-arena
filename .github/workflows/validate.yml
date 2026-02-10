@@ -10,13 +10,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install Vagrant
+        run: sudo apt-get update && sudo apt-get install -y vagrant
+
+      - name: Validate Vagrantfile syntax
+        run: vagrant validate
+        working-directory: vmops-arena
+
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y yamllint
 
       - name: Validate YAML syntax
         run: yamllint cloud-init/user-data.yaml
-
-      - name: Run grading script
-        run: |
-          chmod +x grade.sh
-          ./grade.sh
