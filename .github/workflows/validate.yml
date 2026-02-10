@@ -1,0 +1,22 @@
+name: CI Validation
+
+on:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y yamllint
+
+      - name: Validate YAML syntax
+        run: yamllint cloud-init/user-data.yaml
+
+      - name: Run grading script
+        run: |
+          chmod +x grade.sh
+          ./grade.sh
