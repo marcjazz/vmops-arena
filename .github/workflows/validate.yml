@@ -39,7 +39,7 @@ jobs:
           SUBMISSION_DIR="submissions/${{ github.actor }}"
           if [ -f "$SUBMISSION_DIR/Vagrantfile" ]; then
             cd "$SUBMISSION_DIR"
-            vagrant validate
+            vagrant validate --ignore-provider
           else
             echo "Error: Vagrantfile not found"
             exit 1
