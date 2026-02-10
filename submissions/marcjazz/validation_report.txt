@@ -1,0 +1,8 @@
+[PASS] User 'student' exists.
+[PASS] Shell for 'student' is /bin/zsh.
+[PASS] Oh My Zsh is installed.
+[PASS] SSH Password Authentication disabled.
+[FAIL] SSH Root Login allowed.
+[PASS] UFW is active.
+[PASS] Firewall rules for 22 and 80 are present.
+[FAIL] Private IP 192.168.56.10 not found.
