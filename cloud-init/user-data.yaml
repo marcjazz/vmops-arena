@@ -1,5 +1,0 @@
-#cloud-config
-
-users:
-  - name: student
-    sudo: ALL=(ALL) NOPASSWD:ALL
