@@ -3,16 +3,3 @@
 users:
   - name: student
     sudo: ALL=(ALL) NOPASSWD:ALL
-    shell: /bin/zsh
-    ssh_authorized_keys:
-      - REPLACE_WITH_YOUR_PUBLIC_KEY
-
-packages:
-  - zsh
-  - git
-  - curl
-
-runcmd:
-  # Install Oh My Zsh unattended
-  - su - student -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
-  - chsh -s /bin/zsh student
