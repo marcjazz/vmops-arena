@@ -10,15 +10,42 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Check required files existence
+        run: |
+          SUBMISSION_DIR="submissions/${{ github.actor }}"
+          for file in Vagrantfile cloud-init/user-data.yaml validation_report.txt; do
+            if [ ! -f "$SUBMISSION_DIR/$file" ]; then
+              echo "Error: $SUBMISSION_DIR/$file is missing"
+              exit 1
+            fi
+          done
+
+      - name: Verify validation report status
+        run: |
+          SUBMISSION_DIR="submissions/${{ github.actor }}"
+          TOTAL_TESTS=$(grep -c "\[PASS\]" validate_lab.sh)
+          THRESHOLD=$(( (TOTAL_TESTS * 70 + 99) / 100 ))
+          PASS_COUNT=$(grep -c "\[PASS\]" "$SUBMISSION_DIR/validation_report.txt")
+          
+          echo "Total expected tests: $TOTAL_TESTS"
+          echo "Required threshold (70%): $THRESHOLD"
+          echo "Found $PASS_COUNT [PASS] entries in submission."
+          
+          if [ "$PASS_COUNT" -lt "$THRESHOLD" ]; then
+            echo "Error: Found $PASS_COUNT [PASS] entries, but at least $THRESHOLD are required."
+            exit 1
+          fi
+
       - name: Install Vagrant
         run: sudo apt-get update && sudo apt-get install -y vagrant
 
       - name: Validate Vagrantfile syntax
-        run: vagrant validate
-        working-directory: vmops-arena
+        run: |
+          cd "submissions/${{ github.actor }}"
+          vagrant validate
 
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install -y yamllint
 
       - name: Validate YAML syntax
-        run: yamllint cloud-init/user-data.yaml
+        run: yamllint "submissions/${{ github.actor }}/cloud-init/user-data.yaml"
