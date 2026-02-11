@@ -1,0 +1,29 @@
+#cloud-config
+
+users:
+  - name: student
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: sudo
+    shell: /bin/zsh
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDMkKavGNSbakZov/2z/GNx2+XDu2yui3JqmgGwAtHe+YO3qKliUBpZYSTA6GA9xfGoIleN2IgQrqNkTzeyvcsfKW5v+YKyNjX2kpyyVKdaTBXB6jtne82wb4hA2NxfYagVJ4Afox6D77WGBe9ryXputcyZr2sf/AITkPkCEkI90vhIxXguMKh41otGWWVtWfPvV42TMjqzhU+jp5/ZuNnP7M9ZCiUoBCt2gLR4xaPcpUCUM4Y0awjS/G+8Pr66E3N5Iw5DTV3lvyr2rJDofLqEJ5qurfQAoNFfxDrj/y0SsiFtoDwhPy1IDgeYvM879zLnKHlKv4UfEp64YuajmUDInaD425Uy6E5FWyIGjc9xUySOHCo4Cm4SoCdf2kClKjVEKh7OXsfHnywZPnQEjME8Bh7/QXQoZr/bVp2k/scAESI9pTzVbnlmmYYO1t0rs1aRe45WSB3Qn+RdBsbGZF9sA1ciNnpUL15MtRfVd73dbstEpdoBvYqf77WsIcxCaQxRUHcwbw6Gqo9Q/n/LXcpdClz0KBppEnu7mBB/YZznjmcKBWowo8FtmDmg0RrHxdz2ciF6wWfwvlRLE7SWantZgyes4UVQF5x8GufBzw5jYXgKCszrajD8ptp2I7ZhZ6mi7DrcJDQ0ML8U4pFSUEwmktq+FhGyY7QV7QwC/+tOzw== bryan.ngongehngench@adorsys.com
+
+package_update: true
+package_upgrade: true
+packages:
+  - git
+  - curl
+  - zsh
+  - nginx
+  - ufw
+
+runcmd:
+  - ufw default deny incoming
+  - ufw allow ssh
+  - ufw allow http
+  - ufw --force enable
+  - sed -i 's/#*PermitRootLogin .*/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -i 's/#*PasswordAuthentication .*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - systemctl restart sshd
+  - runuser -u student -- sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" --unattended
