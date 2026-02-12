@@ -1,0 +1,42 @@
+#cloud-config
+autoinstall:
+  version: 1
+
+# 1. System Updates and Package Installation
+package_update: true
+package_upgrade: true
+packages:
+  - git
+  - curl
+  - zsh
+  - nginx
+  - ufw
+
+# 2. User Configuration
+users:
+  - name: student
+    groups: sudo
+    shell: /bin/zsh
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCiwq36FJkwD3iJUf0w0b2XESrUXbFZwk06A6szM9SANswcF57zNPVdMrX/V/+tyRWnTz9nZdPGEOK09PqfdrA5wtR1AFCgHAma3BKXppv2qfG6yfTTWDZGXQDUb6dfPAoT60ylSb/V4dhZzvzEw/OO/oK4C8/nh3argylgIrgvohxpf9sEArc3xwD7z+aVhdwVxKA+bLDBA8Fp1jg7cs5wp5o0Z3aCUdGcypLHBOid2LioWDUazLe2PPYIxG2xU2Z/5dMmgkl/Lbi6SrSLUErLWn9YJTnzr7LtA69nNzf0o7ogdqqaAn3GeU66c3UCAX6sFBFoVMmVBJG1s4GztmisZsQh6zzRJPduHSBFoKR0LgbY7jAGrhzUXZAcrpTYXDk+ymZ3mreaua+/2Qm5sYP5T2/BMgPMFkzNEG3vAejFLl6IMVtXPL6OXuBPQ+LWVzlGyKWZrt3QJZjoqHEBUx+erkMB9RSNoCKr/B2S2dkbMy1tQ8nu92/U1yLkG8Tj2yc= blessing@blessing-ws
+
+# 3. Security Hardening (SSH & Firewall)
+runcmd:
+  # SSH Hardening
+  - sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+  - systemctl restart ssh
+
+  # UFW Firewall Setup
+  - ufw default deny incoming
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw --force enable
+
+  # Install Oh My Zsh for 'student' (Unattended)
+  - sudo -u student -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+
+# 4. Final adjustments
+final_message: "The system is hardened and ready, Blessing!"
