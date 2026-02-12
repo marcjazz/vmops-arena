@@ -1,0 +1,27 @@
+#cloud-config
+
+users:
+  - name: student
+    shell: /bin/zsh
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC9rsSrrUpEy0ADqHQJD/8U7zkvW85MAnTU1HR2UArlm assah9799@gmail.com
+
+packages:
+  - git
+  - curl
+  - zsh
+  - nginx
+
+runcmd:
+  - su - student -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+  - sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
+  - systemctl restart ssh
+  - ufw default deny incoming
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw --force enable
+  #  now runs after packages & system is ready
+  - systemctl enable nginx
+  - systemctl start nginx || true   # || true prevents failure if already running

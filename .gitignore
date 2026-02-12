@@ -5,7 +5,7 @@
 .DS_Store
 Thumbs.db
 *.swp
-
+idea/
 # IDEs
 .vscode/
 .idea/
