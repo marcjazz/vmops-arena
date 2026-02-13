@@ -1,0 +1,41 @@
+#cloud-config
+
+# Optimized Hardened Lab Configuration
+# Uses native cloud-init keys where possible for simplicity
+
+users:
+  - name: student
+    gecos: "Student User"
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/zsh
+    lock_passwd: true
+    ssh_authorized_keys:
+      - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICGFtpIXh8/R5KuNJn5xt2ZT7kSriJujoffJnu8TIgYU fuhvalentinesuh@gmail.com"
+
+packages:
+  - git
+  - curl
+  - zsh
+  - nginx
+  - ufw
+
+runcmd:
+  # Install Oh My Zsh for student
+  - su - student -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended' || true
+  
+  # SSH Hardening (Explicitly modify for validation script compliance)
+  - sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+  - systemctl restart ssh || systemctl restart sshd
+
+  # Firewall Setup
+  - ufw default deny incoming
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw --force enable
+  
+  # Services
+  - systemctl enable nginx
+  - systemctl start nginx
+
+final_message: "Optimization complete. Lab is ready for validation."
