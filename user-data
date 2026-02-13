@@ -1,0 +1,44 @@
+#cloud-config
+
+# 1. Update & Install Required Packages
+package_update: true
+package_upgrade: true
+packages:
+  - git
+  - curl
+  - zsh
+  - nginx
+
+# 2. Create 'student' User with Zsh and Sudo Access
+users:
+  - name: student
+    groups: sudo
+    shell: /bin/zsh
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDdpQCRn06eHNvAqeJfzHUCWe1Z6Lij16m9O0ZcS3MmzQXK+n42OWpIeuwOByGWlFIxdIxj6tsk8jstpsQBbVIG0QGPUmpHfpoY/Dt8ITahxqMed0i1nIKcx751LYTEF2izweaQqgValuIs2DN/7+gcHTKPPlwcjJuM9o/icA1bl/SpoYX4DtSjqYeGR12Qk9xacnjAWtpiuioyZ+FfpJYex+c63n1npuSUPDnMT7DXvbgoqIXlg2QJn7N0vm6/XW0hAv89KtmuUMwYgrqm4s0i6FT/D4mdn+koZVgdeymNLkj2EQfIgEOZVq+ANt7DDw17B/p7RklJsuMqRyzUSRdUSfx3cBw2tmgUbVIPZsyQ41F2HQhIbqMH1YOLAvVaGlYbOBsA6WlYCsKBF4J631lGI6Cho6szYw0TPs5kqecQ3/PZ99lT8Xx+KI1KE7zq6uqv5e3g7/c+6o0BDrMDtdyWBuljngn3CDjJTGzkqIE7PDnMBQMO/DmXIAh28/RFqtZn1aRkEkPcsnY9Nd8pCnuvV2pHuR1Au1EhhZYCwSCPMzOOo96KoWgO/sq4YODGumUwBSh711hlFANXN0WVQjAVVPdc9WEfsQw8KBq3ZlR/nk//CI/k7mxRXr0pnyoyrAPJDEOQWdmEG1n8AYNYmD+uWtCUmybyw7252y6fSnpc2Q== tekumnjit@gmail.com
+
+# 3. Security Hardening: Lock Down SSH
+write_files:
+  - path: /etc/ssh/sshd_config.d/00-hardened.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      PubkeyAuthentication yes
+      ChallengeResponseAuthentication no
+    permissions: '0644'
+
+# 4. Final Configuration: Oh My Zsh & Firewall (UFW)
+runcmd:
+  # Install Oh My Zsh for student (Unattended)
+  - sudo -u student sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+  
+  # Configure Firewall (Deny all except SSH and HTTP)
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw --force enable
+  
+  # Restart SSH to apply security settings
+  - systemctl restart ssh

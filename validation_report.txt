@@ -1,0 +1,13 @@
+VM OPS Arena - Validation Report
+Date: Thu Feb 12 06:24:31 PM UTC 2026
+User: student
+---------------------------------------------------
+[PASS] User is 'student'
+[PASS] Shell is Zsh
+[PASS] Network: Static IP 192.168.56.10 found
+[PASS] Service: Nginx is running
+[PASS] Security: UFW Firewall is active
+[PASS] Security: SSH Root Login is disabled
+[PASS] Security: SSH Password Auth is disabled
+---------------------------------------------------
+Validation Complete. Submit validation_report.txt to GitHub.
