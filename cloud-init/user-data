@@ -1,0 +1,45 @@
+# Create the student user
+users:
+  - name: student
+    shell: /bin/zsh
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: sudo
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIpDn5bGLlqRdFsteNk2c16J178dXLvMc7Z/2T49CjdQ borisngha6@gmail.com
+
+# Install required packages
+packages:
+  - git
+  - curl
+  - zsh
+  - nginx
+  - ufw
+
+# Run commands after package installation
+runcmd:
+  # Install Oh My Zsh for student user (unattended)
+  - su - student -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+  
+  # Configure UFW firewall
+  - ufw --force reset
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw --force enable
+  
+  # Harden SSH configuration
+  - sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+  - systemctl restart ssh
+  
+  # Start and enable nginx
+  - systemctl start nginx
+  - systemctl enable nginx
+
+# Ensure services are running
+packages_update: true
+packages_upgrade: false
