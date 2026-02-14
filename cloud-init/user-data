@@ -1,0 +1,63 @@
+#cloud-config
+
+# User configuration
+users:
+  - name: student
+    groups: sudo
+    shell: /bin/zsh
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC1MPEIgThH7z4RYOkpfHIddy+AXklNcBGEKZblmLx1HSXFNCJbN5AM2jsJ/v3OJvVsWZLCj0WwE6IWTtf2ubXMVhOLH+hXgbtnpurzYlu6/b7wphUMBKlgOOesPhjZvFyoTiKzbi8Ixwje/Z2HFileWQSP6wDad0tI3lsuprUrj2fsGeYmQ/U8yCtbVG2Obh3N4d2KXI5GCwXiddqLBv0v4Th9+HabesA+hD+E+acDkxvLLPcotuyEkMst4YZpsm34ffa3eS+mDmkcWzdAyb3p+SLyaM4EjKC19JspMJanYBBSe26EADYnuYBrVk/zkjXgTf6flWiJlSUaImRooQ2OxSRqweVnn0T5DdCovTOKhjGI9O0m+uebWA5HdDSscoM397U0zvbC9GJENtyexDZugyWKy3elgXWQIE81/Bg9WBa6IulKmJEkBQVDrPzeIXf5ax6r6L+GFUu34fHhLvxR7jmCkCUIkjFEr8PW16aSHlqNW9qdoTlbI/5o0UAd1hKPLQSdUmsBRA/JOP2TuwRuFS9AHMMor5xM8LZsEkqgnTpiYxhoyxuFo2c2r7A65BF4aZoTntHUtfjmp+Xh/jaMUXQO84yGgAZo30VlJsbPYg3M1/Irn8RbvkM3csgYdjMApG2gJchmYdxSRFSH+yWyE0cyN5QjpVuAAayTDPbJhQ== mbunwevicki@gmail.com
+
+# Package management
+package_update: true
+
+packages:
+  - git
+  - curl
+  - zsh
+  - nginx
+  - ufw
+
+# File configuration
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+    owner: root:root
+    permissions: '0644'
+
+# Runtime commands
+runcmd:
+  # Configure SSH hardening - ensure settings are in main config file
+  - |
+    sed -i 's/#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+    sed -i 's/#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+    grep -q "^PasswordAuthentication" /etc/ssh/sshd_config || echo "PasswordAuthentication no" >> /etc/ssh/sshd_config
+    grep -q "^PermitRootLogin" /etc/ssh/sshd_config || echo "PermitRootLogin no" >> /etc/ssh/sshd_config
+
+  # Install Oh My Zsh for student user (unattended)
+  - |
+    if id -u student > /dev/null 2>&1; then
+      export RUNUSER_HOME=/home/student
+      export ZSH="$RUNUSER_HOME/.oh-my-zsh"
+      sudo -u student sh -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended' || true
+    fi
+
+  # Configure UFW firewall
+  - ufw --force reset
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw --force enable
+
+  # Restart SSH service to apply hardening
+  - systemctl restart ssh || systemctl restart sshd
+
+  # Ensure nginx is started and enabled
+  - systemctl enable nginx
+  - systemctl start nginx
+
+final_message: "Cloud-Init configuration completed successfully!"
