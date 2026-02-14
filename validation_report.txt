@@ -1,11 +1,11 @@
 --- VALIDATION REPORT ---
-Generated on: Sat Feb 14 05:58:36 PM WAT 2026
-[FAIL] User 'student' missing.
-[FAIL] Shell is .
-[FAIL] Oh My Zsh directory missing.
-[FAIL] SSH Password Authentication still enabled.
-[FAIL] SSH Root Login allowed.
+Generated on: Sat Feb 14 06:09:44 PM UTC 2026
+[PASS] User 'student' exists.
+[PASS] Shell for 'student' is /bin/zsh.
+[PASS] Oh My Zsh is installed.
+[PASS] SSH Password Authentication disabled.
+[PASS] SSH Root Login disabled.
 [PASS] UFW is active.
-[FAIL] Required firewall rules missing.
-[FAIL] Private IP 192.168.56.10 not found.
+[PASS] Firewall rules for 22 and 80 are present.
+[PASS] Private IP 192.168.56.10 is configured.
 --- END OF REPORT ---
