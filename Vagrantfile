@@ -1,7 +1,7 @@
 Vagrant.configure("2") do |config|
   # 1. Networking & Infrastructure
   config.vm.box = "bento/ubuntu-24.04"
-  config.vm.network "private_network", ip: "192.168.57.10"
+  config.vm.network "private_network", ip: "192.168.56.10"
 
   # Provider
   config.vm.provider "virtualbox" do |v|
