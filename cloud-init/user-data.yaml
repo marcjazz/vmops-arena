@@ -1,0 +1,21 @@
+#cloud-config
+
+hostname: cloudvm
+timezone: Africa/Douala
+
+users:
+  - name: student
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+    groups: sudo
+    lock_passwd: false
+    plain_text_passwd: password123
+
+packages:
+  - nginx
+  - git
+  - curl
+
+runcmd:
+  - systemctl enable nginx
+  - systemctl start nginx
