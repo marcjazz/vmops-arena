@@ -1,0 +1,58 @@
+#cloud-config
+
+# User configuration
+users:
+  - name: student
+    groups: sudo
+    shell: /bin/zsh
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDYv62VNBq+jHP06VW1T3IWAVgkpOdBFc8mEYofuj7KTqrYfaelCVCxHpYOpBR2upm1xdQTc2LYRv3SmHy9+DU3RHBIp7FNX671MI1vaBxSgmihMmfXyci8JwGSsIyHZofhI1b7KloXabM6xUabntx3zPruHCPb7Lpq1s7/OBeS4jHxE2Ti5vfQGonAjdo5CeVaAQO5xbifcL20aRcUxZzrBM+/e0uJMcSu58wDQ+HoOluXmOLGctJa/c3D2BzWfOrmBIwbRVjdREaDZ51q2jZVsVJbZhhcCnSpFrlSMeo8miHnpp3x2tb2W9pjY2f+CCLb+42Ul8m4Z5UvWH80qRmtKvie9YXWfYz5FX/V/FnZ2ILNkDAjt6fBiJarHUcYvLUHwaagUml0xZLn8vOFJ3uUXat1UWNgr79h0K8pK1nifE6MKjNA5frFqoelDMfxv1gPyvMh8pldMjXqAzDsdHT+kuEyQiFzlxsOVxwRbxpuSSZyF2bTJQBiDAxJLjHmH2E+LsHKojmqxNjVJ+E5p0Zz4vqxEvTivYnD31cNcAmUgvFuN1p3ZZTzeoDcU9UJOmbXI1P9lfuUaCG+D20Z8YSh9UMU6feutTfdQxWr7hvfK5P2pE5HGyUT0SqUhmKJ9t8K3D2n29zDFPl38Dqfv3O6nHLjZnCNzBBPPCYXaPIdeQ== motouomvictor@gmail.com
+
+# Package installation
+packages:
+  - git
+  - curl
+  - zsh
+  - nginx
+  - ufw
+
+# Commands to run after package installation
+runcmd:
+  # Install Oh My Zsh for student user (unattended)
+  - su - student -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+  
+  # Configure UFW firewall
+  - ufw --force reset
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw --force enable
+  
+  # Configure SSH daemon
+  - sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -i 's/PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+  - systemctl restart sshd
+  
+  # Start and enable Nginx
+  - systemctl start nginx
+  - systemctl enable nginx
+  
+  # Set proper permissions
+  - chown -R student:student /home/student
+
+# Write files
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      PubkeyAuthentication yes
+    permissions: '0644'
+
+# Final message
+final_message: "Cloud-init configuration complete. System is ready!"
