@@ -1,0 +1,11 @@
+--- VALIDATION REPORT ---
+Generated on: Mon Feb 16 10:03:35 AM UTC 2026
+[PASS] User 'student' exists.
+[FAIL] Shell is /usr/bin/zsh.
+[PASS] Oh My Zsh is installed.
+[FAIL] SSH Password Authentication still enabled.
+[FAIL] SSH Root Login allowed.
+[PASS] UFW is active.
+[PASS] Firewall rules for 22 and 80 are present.
+[PASS] Private IP 192.168.56.10 is configured.
+--- END OF REPORT ---
