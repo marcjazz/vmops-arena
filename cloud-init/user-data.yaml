@@ -1,0 +1,67 @@
+#cloud-config
+
+# Install packages FIRST (before creating users)
+package_update: true
+package_upgrade: true
+
+packages:
+  - git
+  - curl
+  - zsh
+  - nginx
+  - ufw
+
+# Now create user with zsh (which is already installed)
+users:
+  - name: student
+    groups: sudo
+    shell: /bin/zsh
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    lock_passwd: true
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJBsbBUGz8spVwzmAWo2uS77uDF539KqTM2JDdxsCejH asahcaleb4@gmail.com
+
+# Disable root
+disable_root: true
+ssh_pwauth: false
+
+# SSH hardening configuration
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    permissions: '0644'
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      PubkeyAuthentication yes
+
+# Run commands
+runcmd:
+  # Make absolutely sure the shell is zsh
+  - chsh -s /bin/zsh student
+
+  # Enforce SSH hardening in main config (validator compatibility)
+  - sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -i 's/^#\?PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+  - systemctl restart ssh || systemctl restart sshd
+  
+  # Configure UFW
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw --force enable
+  
+  # Apply SSH hardening - restart sshd to ensure new config is loaded
+  - systemctl restart sshd || systemctl restart ssh
+  
+  # Install Oh My Zsh
+  - su - student -c 'RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"'
+  
+  # Ensure nginx runs
+  - systemctl enable nginx
+  - systemctl start nginx
+
+final_message: |
+  Cloud-Init Complete!
+  Student user configured with zsh and SSH key auth
