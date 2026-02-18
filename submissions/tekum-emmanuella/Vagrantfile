@@ -18,16 +18,19 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     echo "Injecting Cloud-Init Configuration..."
     mkdir -p /var/lib/cloud/seed/nocloud-net/
-    cp /vagrant/user-data /var/lib/cloud/seed/nocloud-net/user-data
-    echo "instance-id: vagrant-lab-node" > /var/lib/cloud/seed/nocloud-net/meta-data
     
+    # FIX: The path is now relative to this folder
+    cp /vagrant/cloud-init/user-data /var/lib/cloud/seed/nocloud-net/user-data
+    
+    echo "instance-id: vagrant-lab-node" > /var/lib/cloud/seed/nocloud-net/meta-data
+
     # Force Cloud-Init to run
     cloud-init clean
     cloud-init init --local
     cloud-init init
     cloud-init modules --mode=config
     cloud-init modules --mode=final
-    
+
     echo "Cloud-Init Injection Complete!"
   SHELL
 end
