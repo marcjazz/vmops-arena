@@ -14,3 +14,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# SSH keys (ignore the entire folder)
+ssh_keys/
+

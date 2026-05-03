@@ -1,0 +1,50 @@
+#cloud-config
+
+# Cloud-Init configuration for hardened Vagrant lab
+# This file contains ALL OS-level configuration
+
+users:
+  - name: student
+    groups: sudo
+    shell: /bin/zsh
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIESix/XPjlg3npdSuK9xZ7ZLOiAZleh2DjTNFeiPA9tE student@vagrant-lab
+
+# Package installation
+packages:
+  - git
+  - curl
+  - zsh
+  - nginx
+  - ufw
+
+# Commands to run after package installation
+runcmd:
+  # Install Oh My Zsh for student user (unattended)
+  - su - student -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+  
+  # Configure UFW firewall
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - echo "y" | ufw enable
+  
+  # Harden SSH daemon
+  - sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -i 's/^#*PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+  - systemctl restart ssh
+  
+  # Start and enable Nginx
+  - systemctl start nginx
+  - systemctl enable nginx
+  
+  # Set proper permissions for student home directory
+  - chown -R student:student /home/student
+  - chmod 700 /home/student/.ssh
+  - chmod 600 /home/student/.ssh/authorized_keys
+
+# Final message
+final_message: "Cloud-Init provisioning complete! VM is ready for validation."
