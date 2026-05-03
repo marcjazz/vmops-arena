@@ -1,0 +1,60 @@
+#cloud-config
+
+# Update package database on first boot
+package_update: true
+package_upgrade: true
+
+# Install required packages
+packages:
+  - git
+  - curl
+  - zsh
+  - nginx
+  - ufw
+  - openssh-server
+
+# Create the student user
+users:
+  - name: student
+    groups: sudo
+    shell: /bin/zsh
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+      - AAAAC3NzaC1lZDI1NTE5AAAAIB48G24BYlru7MPce7I7gAB8ok8c4zYkvwTBaUjLenW2
+
+# SSH daemon hardening - Method 1: write_files
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      PubkeyAuthentication yes
+    permissions: '0644'
+    owner: root:root
+
+# Run commands after everything else
+runcmd:
+  # Install Oh My Zsh for student user (unattended)
+  - su - student -c 'sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended'
+  
+  # Configure UFW firewall
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - echo "y" | ufw enable
+  
+  # Ensure SSH hardening is applied (backup method)
+  - sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+  - sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+  - sed -i 's/^#*PubkeyAuthentication.*/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+  
+  # Restart SSH to apply hardening
+  - systemctl restart sshd
+  
+  # Start and enable nginx
+  - systemctl enable nginx
+  - systemctl start nginx
+
+# Final message
+final_message: "Cloud-init setup complete! System hardened and ready."
